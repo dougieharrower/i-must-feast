@@ -45,7 +45,6 @@ In early prototype phase — working on core mechanics like:
 
 ## 💡 Inspiration
 
-- *Spyro the Dragon*, *Banjo-Kazooie* (visuals)
 - *What We Do in the Shadows*, *Taskmaster* (tone)
 - Low-poly parkcore weirdness
 
