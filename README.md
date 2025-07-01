@@ -1,4 +1,4 @@
-# 🦔 I MUST Feast
+# 🦔 I MUST FEAST
 
 **I MUST Feast** is a dark comedy horror game about a human-sized vampire hedgehog who lives in a park — and must. always. feast.  
 You’ll sneak through sunlit playgrounds, lure unsuspecting victims, and stockpile bodies before winter — all while dodging Van Helsing types, garlic knot kiosks, and the rising sun.
