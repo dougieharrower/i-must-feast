@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
@@ -17,40 +18,76 @@ public class PlayerMovement : MonoBehaviour
     private CharacterController controller;
     private Vector3 velocity;
     private bool isGrounded;
-    private bool isRunning;
 
-    void Start()
+    private Vector2 inputMove;
+    private bool isJumpPressed;
+    private bool isSprintHeld;
+
+    private InputSystem_Actions inputActions;
+
+    void Awake()
     {
         controller = GetComponent<CharacterController>();
-    }
 
-    void Update()
-    {
-        // Ground check
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-        if (isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f;
-        }
+        // Initialize and enable input actions
+        inputActions = new InputSystem_Actions();
+        inputActions.Player.Enable();
 
         // Movement input
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+        inputActions.Player.Move.performed += ctx => inputMove = ctx.ReadValue<Vector2>();
+        inputActions.Player.Move.canceled += _ => inputMove = Vector2.zero;
 
-        Vector3 move = transform.right * x + transform.forward * z;
-        isRunning = Input.GetKey(KeyCode.LeftShift);
-        float currentSpeed = isRunning ? runSpeed : walkSpeed;
+        // Jump input
+        inputActions.Player.Jump.performed += _ => isJumpPressed = true;
+        inputActions.Player.Jump.canceled += _ => isJumpPressed = false;
 
-        controller.Move(move * currentSpeed * Time.deltaTime);
+        // Sprint input
+        inputActions.Player.Sprint.performed += _ => isSprintHeld = true;
+        inputActions.Player.Sprint.canceled += _ => isSprintHeld = false;
+    }
 
-        // Jump
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
+ void Update()
+{
+    // Ground check
+    isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+    if (isGrounded && velocity.y < 0)
+    {
+        velocity.y = -2f;
+    }
 
-        // Apply gravity
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+    // Camera-relative movement
+    Vector3 camForward = Camera.main.transform.forward;
+    Vector3 camRight = Camera.main.transform.right;
+    camForward.y = 0f;
+    camRight.y = 0f;
+
+    Vector3 move = (camForward * inputMove.y + camRight * inputMove.x).normalized;
+    float currentSpeed = isSprintHeld ? runSpeed : walkSpeed;
+
+    // Rotate Baune to face movement direction
+    if (move != Vector3.zero)
+    {
+        Quaternion targetRotation = Quaternion.LookRotation(move);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+    }
+
+    // Apply movement
+    controller.Move(move * currentSpeed * Time.deltaTime);
+
+    // Jumping
+    if (isJumpPressed && isGrounded)
+    {
+        velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+    }
+
+    // Gravity
+    velocity.y += gravity * Time.deltaTime;
+    controller.Move(velocity * Time.deltaTime);
+}
+
+
+    void OnDisable()
+    {
+        inputActions.Player.Disable();
     }
 }

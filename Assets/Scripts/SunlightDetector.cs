@@ -3,8 +3,9 @@ using UnityEngine;
 public class SunlightDetector : MonoBehaviour
 {
     [Header("Detection Settings")]
-    public float rayHeightAbovePlayer = 10f;
-    public LayerMask coverLayer; // Assign your "Cover" objects to this in the Inspector
+    public Light sunLight;             // Reference to your directional light
+    public float checkDistance = 100f; // How far to check (long enough to reach from sun's direction)
+    public LayerMask coverLayer;       // Only detect objects that can block the sun
 
     [Header("Debug")]
     public bool isInShade = false;
@@ -16,12 +17,17 @@ public class SunlightDetector : MonoBehaviour
 
     void CheckForShade()
     {
-        Vector3 rayOrigin = transform.position + Vector3.up * rayHeightAbovePlayer;
-        Vector3 rayDirection = Vector3.down;
-        float rayDistance = rayHeightAbovePlayer + 1f;
+        if (sunLight == null)
+        {
+            Debug.LogWarning("SunlightDetector: No sunLight assigned.");
+            return;
+        }
 
-        // Raycast down to see if something is blocking the sun
-        if (Physics.Raycast(rayOrigin, rayDirection, out RaycastHit hit, rayDistance, coverLayer))
+        // Ray starts above Baune and goes in opposite direction of sunlight
+        Vector3 rayOrigin = transform.position;
+        Vector3 rayDirection = -sunLight.transform.forward;
+
+        if (Physics.Raycast(rayOrigin, rayDirection, out RaycastHit hit, checkDistance, coverLayer))
         {
             isInShade = true;
         }
@@ -30,7 +36,7 @@ public class SunlightDetector : MonoBehaviour
             isInShade = false;
         }
 
-        // Optional: visualize ray
-        Debug.DrawRay(rayOrigin, rayDirection * rayDistance, isInShade ? Color.green : Color.red);
+        // Debug ray (green = in shade, red = in sun)
+        Debug.DrawRay(rayOrigin, rayDirection * checkDistance, isInShade ? Color.green : Color.red);
     }
 }
