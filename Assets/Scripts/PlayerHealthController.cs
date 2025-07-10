@@ -15,6 +15,8 @@ public class PlayerHealthController : MonoBehaviour
     public float currentHealth;
     public float recoverableHealth;
 
+public Material[] burnMaterials;
+
     private bool isDead = false;
 
     void Start()
@@ -25,6 +27,12 @@ public class PlayerHealthController : MonoBehaviour
 
     void Update()
     {
+
+foreach (Material mat in burnMaterials)
+{
+    mat.SetFloat("_HealthPrecent", currentHealth / maxHealth);
+}
+
         if (isDead) return;
 
         if (sunlightDetector == null)
@@ -82,11 +90,33 @@ public class PlayerHealthController : MonoBehaviour
         currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
         recoverableHealth = currentHealth; // Fully healed, no buffer
     }
-    
+
     public void GainHealth(float amount)
+    {
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        recoverableHealth = Mathf.Max(recoverableHealth, currentHealth);
+    }
+
+public class CharacterBurnEffect : MonoBehaviour
 {
-    currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-    recoverableHealth = Mathf.Max(recoverableHealth, currentHealth);
+    public PlayerHealthController playerHealth;
+    public Renderer[] affectedRenderers;  // Drag in body & quills renderers
+    private static readonly int HealthPrecentID = Shader.PropertyToID("_HealthPrecent");
+
+    void Update()
+    {
+        float healthPercent = Mathf.Clamp01(playerHealth.currentHealth / playerHealth.maxHealth);
+        foreach (Renderer rend in affectedRenderers)
+        {
+            foreach (Material mat in rend.materials)
+            {
+                if (mat.HasProperty(HealthPrecentID))
+                {
+                    mat.SetFloat(HealthPrecentID, healthPercent);
+                }
+            }
+        }
+    }
 }
 
 }
