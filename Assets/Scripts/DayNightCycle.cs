@@ -14,27 +14,39 @@ public class DayNightCycle : MonoBehaviour
     [Header("Debug")]
     [Range(0f, 1f)] public float timeOfDay;
     public bool isNight;
+    public bool overrideStaticSun = false;
 
     private float elapsed = 0f;
 
     void Update()
     {
-        // 1. Update time
+        if (overrideStaticSun)
+        {
+            // Static sun: directly overhead, no animation
+            transform.rotation = Quaternion.Euler(90f, 50f, 0f); // Directly overhead (adjust Y as needed)
+            if (directionalLight)
+            {
+                directionalLight.color = Color.white;
+                directionalLight.intensity = 1f;
+            }
+
+            isNight = false;  // It's always "day" in this mode
+            return;  // Skip the normal cycle
+        }
+
+        // Normal animated day/night cycle
         elapsed += Time.deltaTime;
         timeOfDay = (elapsed % dayDuration) / dayDuration;
 
-        // 2. Rotate the light
         float angle = timeOfDay * 360f;
         transform.rotation = Quaternion.Euler(angle, 50f, 0f); // Tilt angle
 
-        // 3. Calculate light appearance
         if (directionalLight)
         {
             directionalLight.color = colorOverTime.Evaluate(timeOfDay);
             directionalLight.intensity = intensityOverTime.Evaluate(timeOfDay);
         }
 
-        // 4. Determine night (sun below horizon)
         isNight = angle > 180f;
     }
 }
