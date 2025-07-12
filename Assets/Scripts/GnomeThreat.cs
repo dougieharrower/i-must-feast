@@ -18,6 +18,9 @@ public class GnomeThreat : MonoBehaviour
     public float patrolSpeed = 2f;
     public float chaseSpeed = 6f;
 
+    private PlayerMovement bauneMovement;
+
+
     [Header("References")]
     [SerializeField] private GameObject gnomeVisual; // Optional if needed later.
     [SerializeField] private GameObject smokeEffectPrefab; // Assign your smoke prefab here (optional, future use).
@@ -26,7 +29,10 @@ public class GnomeThreat : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         baune = GameObject.FindGameObjectWithTag("Player").transform;
+        bauneMovement = baune.GetComponent<PlayerMovement>();
+
         PickPatrolPoint();
+        
     }
 
     void Update()
@@ -63,25 +69,39 @@ public class GnomeThreat : MonoBehaviour
         agent.SetDestination(randomPoint);
     }
 
-    void DetectBaune()
+void DetectBaune()
+{
+    Vector3 dirToBaune = (baune.position - transform.position);
+    float distance = dirToBaune.magnitude;
+
+    if (distance < detectionRadius)
     {
-        Vector3 dirToBaune = (baune.position - transform.position);
-        float distance = dirToBaune.magnitude;
-
-        if (distance < detectionRadius)
+        // Line of sight check
+        Ray ray = new Ray(transform.position + Vector3.up * 1.5f, dirToBaune.normalized);
+        if (Physics.Raycast(ray, out RaycastHit hit, detectionRadius))
         {
-            bool bauneBehind = Vector3.Dot(transform.forward, dirToBaune.normalized) < 0;
-            bool inShelter = Physics.CheckSphere(baune.position, 0.5f, shelterMask);
-            bool bauneIsSneaking = false; // Replace with your sneak logic later.
-
-            if ((inShelter && (bauneIsSneaking || false)) || bauneBehind)
+            if (hit.collider.CompareTag("Player"))
             {
+                // Player is directly visible
+                bool inBush = bauneMovement != null && bauneMovement.IsInBush();
+                bool isSneaking = bauneMovement != null && bauneMovement.IsSneaking();
+
+                // Can't see sneaking Baune in a bush
+                if (inBush && isSneaking)
+                    return;
+
+                // Otherwise, chase
+                currentState = GnomeState.Chase;
+            }
+            else
+            {
+                // Something blocked the view (e.g., a bush or other shelter object)
                 return;
             }
-
-            currentState = GnomeState.Chase;
         }
     }
+}
+
 
     void ChaseBehavior()
     {

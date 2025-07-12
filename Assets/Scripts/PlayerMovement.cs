@@ -31,6 +31,9 @@ public class PlayerMovement : MonoBehaviour
 
     private bool isFeastPressed;
 
+    public bool isInBush = false;
+
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -56,8 +59,8 @@ public class PlayerMovement : MonoBehaviour
         inputActions.Player.Sneak.canceled += _ => isSneakHeld = false;
 
         // Feast input
-inputActions.Player.Feast.performed += _ => isFeastPressed = true;
-inputActions.Player.Feast.canceled += _ => isFeastPressed = false;
+        inputActions.Player.Feast.performed += _ => isFeastPressed = true;
+        inputActions.Player.Feast.canceled += _ => isFeastPressed = false;
 
 
     }
@@ -78,7 +81,9 @@ inputActions.Player.Feast.canceled += _ => isFeastPressed = false;
         camRight.y = 0f;
 
         Vector3 move = (camForward * inputMove.y + camRight * inputMove.x).normalized;
-        float currentSpeed = isSneakHeld ? sneakSpeed : (isSprintHeld ? runSpeed : walkSpeed);
+        bool effectiveSneak = isInBush || isSneakHeld;
+        float currentSpeed = effectiveSneak ? sneakSpeed : (isSprintHeld ? runSpeed : walkSpeed);
+
 
 
         // Rotate Baune to face movement direction
@@ -110,16 +115,23 @@ inputActions.Player.Feast.canceled += _ => isFeastPressed = false;
 
     public bool IsSneaking()
     {
-        return isSneakHeld;
+        return isSneakHeld || isInBush;
     }
+
     public bool IsStandingStill()
     {
         return inputMove == Vector2.zero;
     }
 
-public bool IsFeastPressed()
+    public bool IsFeastPressed()
+    {
+        return isFeastPressed;
+    }
+
+public bool IsInBush()
 {
-    return isFeastPressed;
+    return isInBush;
 }
+
 
 }
