@@ -1,12 +1,18 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerHealthController : MonoBehaviour
 {
     [Header("Health Settings")]
     public float maxHealth = 100f;
-    public float healthDrainRate = 10f;  // % per second in sun
-    public float healthRecoverRate = 5f; // % per second in shade
-    public float recoverableBuffer = 5f; // Max % above current health recoverable can reach
+    public float healthDrainRate = 10f;
+    public float healthRecoverRate = 5f;
+    public float recoverableBuffer = 5f;
+
+    [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI frenzyCountdownText;
+    public GameObject deathScreen;
 
     [Header("References")]
     public SunlightDetector sunlightDetector;
@@ -15,9 +21,12 @@ public class PlayerHealthController : MonoBehaviour
     public float currentHealth;
     public float recoverableHealth;
 
-public Material[] burnMaterials;
+    public Material[] burnMaterials;
 
     private bool isDead = false;
+    private bool isInFrenzy = false;
+    private float frenzyTimer = 0f;
+    private const float frenzyDuration = 5f;
 
     void Start()
     {
@@ -27,11 +36,10 @@ public Material[] burnMaterials;
 
     void Update()
     {
-
-foreach (Material mat in burnMaterials)
-{
-    mat.SetFloat("_HealthPrecent", currentHealth / maxHealth);
-}
+        foreach (Material mat in burnMaterials)
+        {
+            mat.SetFloat("_HealthPrecent", currentHealth / maxHealth);
+        }
 
         if (isDead) return;
 
@@ -41,20 +49,100 @@ foreach (Material mat in burnMaterials)
             return;
         }
 
-        if (sunlightDetector.isInShade)
+        if (isInFrenzy)
         {
-            RecoverHealth();
+            HandleFrenzy();
         }
         else
         {
-            DrainHealth();
+            if (sunlightDetector.isInShade)
+            {
+                RecoverHealth();
+            }
+            else
+            {
+                DrainHealth();
+            }
+
+            if (currentHealth <= 0f && recoverableHealth > 0f && !isInFrenzy)
+            {
+                StartFrenzy();
+            }
         }
 
-        if (currentHealth <= 0f && !isDead)
+        if (currentHealth <= 0f && recoverableHealth <= 0f && !isDead)
         {
-            isDead = true;
-            Debug.Log("Player Died");
-            // TODO: Hook death mechanics here later
+            HandleDeath();
+        }
+    }
+
+    void StartFrenzy()
+    {
+        isInFrenzy = true;
+        frenzyTimer = frenzyDuration;
+        Debug.Log("FRENZY MODE ACTIVATED! Find shade or feast!");
+
+        if (frenzyCountdownText != null)
+        {
+            frenzyCountdownText.gameObject.SetActive(true);
+            frenzyCountdownText.text = $"FRENZY: {Mathf.CeilToInt(frenzyTimer)}";
+        }
+    }
+
+    void HandleFrenzy()
+    {
+        frenzyTimer -= Time.deltaTime;
+
+        if (frenzyCountdownText != null)
+        {
+            frenzyCountdownText.text = $"FRENZY: {Mathf.CeilToInt(frenzyTimer)}";
+        }
+
+        if (currentHealth > 0f)
+        {
+            EndFrenzy();
+            return;
+        }
+
+        if (frenzyTimer <= 0f)
+        {
+            if (sunlightDetector.isInShade)
+            {
+                Debug.Log("Player barely survived Frenzy by reaching shade!");
+                currentHealth = Mathf.Max(1f, recoverableHealth);
+                EndFrenzy();
+            }
+            else
+            {
+                Debug.Log("Frenzy expired. Player died.");
+                currentHealth = 0f;
+                recoverableHealth = 0f;
+                isDead = true;
+                EndFrenzy();
+                HandleDeath();
+            }
+        }
+    }
+
+    void EndFrenzy()
+    {
+        isInFrenzy = false;
+
+        if (frenzyCountdownText != null)
+        {
+            frenzyCountdownText.gameObject.SetActive(false);
+        }
+
+        Debug.Log("Frenzy ended.");
+    }
+
+    void HandleDeath()
+    {
+        isDead = true;
+        Debug.Log("Player has died.");
+        if (deathScreen != null)
+        {
+            deathScreen.SetActive(true);
         }
     }
 
@@ -64,14 +152,12 @@ foreach (Material mat in burnMaterials)
         currentHealth -= drainAmount;
         currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
 
-        // Adjust recoverable health ONLY if it's too high
         float maxRecoverable = Mathf.Min(currentHealth + recoverableBuffer, maxHealth);
         if (recoverableHealth > maxRecoverable)
         {
             recoverableHealth = Mathf.MoveTowards(recoverableHealth, maxRecoverable, drainAmount);
         }
     }
-
 
     void RecoverHealth()
     {
@@ -83,12 +169,11 @@ foreach (Material mat in burnMaterials)
         }
     }
 
-    // Call this from your Feast script
     public void ApplyFeastHeal(float healAmount = 10f)
     {
         currentHealth += healAmount;
         currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
-        recoverableHealth = currentHealth; // Fully healed, no buffer
+        recoverableHealth = currentHealth;
     }
 
     public void GainHealth(float amount)
@@ -97,26 +182,49 @@ foreach (Material mat in burnMaterials)
         recoverableHealth = Mathf.Max(recoverableHealth, currentHealth);
     }
 
-public class CharacterBurnEffect : MonoBehaviour
-{
-    public PlayerHealthController playerHealth;
-    public Renderer[] affectedRenderers;  // Drag in body & quills renderers
-    private static readonly int HealthPrecentID = Shader.PropertyToID("_HealthPrecent");
-
-    void Update()
+    public void TakeDamage(float damageAmount)
     {
-        float healthPercent = Mathf.Clamp01(playerHealth.currentHealth / playerHealth.maxHealth);
-        foreach (Renderer rend in affectedRenderers)
+        if (isInFrenzy)
         {
-            foreach (Material mat in rend.materials)
+            recoverableHealth -= damageAmount;
+            recoverableHealth = Mathf.Clamp(recoverableHealth, 0f, maxHealth);
+            Debug.Log($"Frenzy Damage! Recoverable Health: {recoverableHealth}");
+
+            if (recoverableHealth <= 0f)
             {
-                if (mat.HasProperty(HealthPrecentID))
+                Debug.Log("Player killed during Frenzy!");
+                currentHealth = 0f;
+                isDead = true;
+                HandleDeath();
+            }
+        }
+        else
+        {
+            currentHealth -= damageAmount;
+            currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+            Debug.Log($"Baune took {damageAmount} damage! Current health: {currentHealth}");
+        }
+    }
+
+    public class CharacterBurnEffect : MonoBehaviour
+    {
+        public PlayerHealthController playerHealth;
+        public Renderer[] affectedRenderers;
+        private static readonly int HealthPrecentID = Shader.PropertyToID("_HealthPrecent");
+
+        void Update()
+        {
+            float healthPercent = Mathf.Clamp01(playerHealth.currentHealth / playerHealth.maxHealth);
+            foreach (Renderer rend in affectedRenderers)
+            {
+                foreach (Material mat in rend.materials)
                 {
-                    mat.SetFloat(HealthPrecentID, healthPercent);
+                    if (mat.HasProperty(HealthPrecentID))
+                    {
+                        mat.SetFloat(HealthPrecentID, healthPercent);
+                    }
                 }
             }
         }
     }
-}
-
 }
