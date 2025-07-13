@@ -3873,7 +3873,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bushPrefabs:
-  - {fileID: 2006337698692539962, guid: ddd5d6acd53729c4a803a39d41b106cf, type: 3}
+  - {fileID: 6565518450984570011, guid: 74d1216ccd356464db25559a6e62cdc5, type: 3}
   minBushes: 5
   maxBushes: 15
   overrideBushCount: 4

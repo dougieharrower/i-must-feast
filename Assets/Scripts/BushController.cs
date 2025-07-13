@@ -43,35 +43,44 @@ void SpawnBushes(int count)
         }
 
         GameObject prefab = bushPrefabs[Random.Range(0, bushPrefabs.Length)];
-   Quaternion randomRotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-GameObject bush = Instantiate(prefab, position, randomRotation);
+        Quaternion randomRotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+        GameObject bush = Instantiate(prefab, position, randomRotation);
 
-
-        // Apply scale variance
+        // Apply uniform scale variance
         float scaleFactor = 1f + Random.Range(-scaleVariance, scaleVariance);
-        bush.transform.localScale *= scaleFactor;
+        bush.transform.localScale = Vector3.one * scaleFactor;
 
-        // Ensure the bush sits on the ground
+        // Ensure the bush sits just slightly in the ground using bounds
         Renderer rend = bush.GetComponentInChildren<Renderer>();
         if (rend != null)
         {
-            float yOffset = rend.bounds.min.y - bush.transform.position.y;
-            bush.transform.position -= new Vector3(0, yOffset, 0);
+            float bottomY = rend.bounds.min.y;
+            float bushY = bush.transform.position.y;
+            float sinkAmount = bottomY - bushY + 0.05f; // sink slightly (5 cm)
+            bush.transform.position -= new Vector3(0, sinkAmount, 0);
+        }
+        else
+        {
+            Debug.LogWarning("No Renderer found on bush prefab.");
         }
 
-        // Optional: auto-enable trigger
+        // Ensure trigger collider is active
         Collider col = bush.GetComponent<Collider>();
         if (col is BoxCollider box && !box.isTrigger)
         {
             box.isTrigger = true;
         }
 
-        placedPositions.Add(position);
+        // Log position for debugging
+        Debug.Log($"Bush {spawned + 1} spawned at {bush.transform.position} with scale {bush.transform.localScale}");
+
+        placedPositions.Add(bush.transform.position);
         spawned++;
     }
 
     Debug.Log($"Spawned {spawned} bushes after {attempts} attempts.");
 }
+
 
 
     Vector3 GetRandomPositionOnNavMesh()

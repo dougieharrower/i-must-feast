@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/StartMenu.unity
+    guid: 394ce2b8f646f6040b1ed563b507e7ac
+  - enabled: 1
     path: Assets/Scenes/FeastPark.unity
     guid: e057160b69f6b58499f3d281052275e3
   - enabled: 0
