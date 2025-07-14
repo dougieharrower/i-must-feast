@@ -78,27 +78,34 @@ void DetectBaune()
     {
         // Line of sight check
         Ray ray = new Ray(transform.position + Vector3.up * 1.5f, dirToBaune.normalized);
-        if (Physics.Raycast(ray, out RaycastHit hit, detectionRadius))
-        {
-            if (hit.collider.CompareTag("Player"))
-            {
-                // Player is directly visible
-                bool inBush = bauneMovement != null && bauneMovement.IsInBush();
-                bool isSneaking = bauneMovement != null && bauneMovement.IsSneaking();
+if (Physics.Raycast(ray, out RaycastHit hit, detectionRadius))
+{
+    if (hit.collider.CompareTag("Player"))
+    {
+        bool inBush = bauneMovement != null && bauneMovement.IsInBush();
+        bool isSneaking = bauneMovement != null && bauneMovement.IsSneaking();
 
-                // Can't see sneaking Baune in a bush
-                if (inBush && isSneaking)
-                    return;
+        // Can't see sneaking Baune in a bush
+        if (inBush && isSneaking)
+            return;
 
-                // Otherwise, chase
-                currentState = GnomeState.Chase;
-            }
-            else
-            {
-                // Something blocked the view (e.g., a bush or other shelter object)
-                return;
-            }
-        }
+        currentState = GnomeState.Chase;
+    }
+    else
+    {
+        // Ignore bushes (assuming they have a specific tag)
+        if (hit.collider.CompareTag("Bush"))
+            return;
+
+        // Block line of sight if it's on the Cover layer (e.g., log wall)
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Cover"))
+            return;
+
+        // If it's anything else, still treat as blocked
+        return;
+    }
+}
+
     }
 }
 

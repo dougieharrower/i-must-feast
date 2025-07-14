@@ -98,13 +98,22 @@ void SpawnBushes(int count)
         return randomPoint; // fallback
     }
 
-    bool IsPositionValid(Vector3 position)
+bool IsPositionValid(Vector3 position)
+{
+    // Check if too close to existing bushes
+    foreach (var placed in placedPositions)
     {
-        foreach (var placed in placedPositions)
-        {
-            if (Vector3.Distance(placed, position) < padding)
-                return false;
-        }
-        return true;
+        if (Vector3.Distance(placed, position) < padding)
+            return false;
     }
+
+    // Check if too close to a log (or anything on the "Log" layer)
+    if (Physics.CheckSphere(position, padding, LayerMask.GetMask("Log")))
+    {
+        return false; // too close to a log
+    }
+
+    return true;
+}
+
 }
