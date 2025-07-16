@@ -1,11 +1,11 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class HeartbeatController : MonoBehaviour
 {
     [Header("References")]
     public Transform player;
-    public Transform prey;
 
     [Header("Distance Settings")]
     public float minDistance = 2f;
@@ -30,10 +30,41 @@ public class HeartbeatController : MonoBehaviour
     void Update()
     {
         if (feastModeActive) return;
-        UpdateHeartbeatLogic();
+
+        Transform closestPrey = FindClosestPrey();
+        if (closestPrey != null)
+        {
+            UpdateHeartbeatLogic(closestPrey);
+        }
+        else
+        {
+            AudioManager.Instance.SetHeartbeatIntensity(0f, 1f); // no prey = quiet
+            currentDelay = maxDelay;
+        }
     }
 
-    void UpdateHeartbeatLogic()
+    Transform FindClosestPrey()
+    {
+        GameObject[] preyObjects = GameObject.FindGameObjectsWithTag("Prey");
+        Transform closest = null;
+        float closestDistance = Mathf.Infinity;
+
+        foreach (GameObject prey in preyObjects)
+        {
+            if (prey == null) continue;
+
+            float dist = Vector3.Distance(player.position, prey.transform.position);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closest = prey.transform;
+            }
+        }
+
+        return closest;
+    }
+
+    void UpdateHeartbeatLogic(Transform prey)
     {
         float distance = Vector3.Distance(player.position, prey.position);
         float t = Mathf.InverseLerp(maxDistance, minDistance, distance);
