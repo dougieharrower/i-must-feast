@@ -140,6 +140,21 @@ else if (!isFeastable && feastPromptWasVisible)
         }
     }
 
+void Start()
+{
+    if (feastEffectController == null)
+    {
+        feastEffectController = Object.FindFirstObjectByType<FeastEffectController>();
+
+        if (feastEffectController == null)
+        {
+            Debug.LogWarning("FeastEffectController not found in scene!");
+        }
+    }
+}
+
+
+
     void OnTriggerExit(Collider other)
     {
         if (!other.CompareTag("Player")) return;

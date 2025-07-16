@@ -19,15 +19,24 @@ public class AudioManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public void PlayShadeTone()
+public void PlayShadeTone()
+{
+    if (shadeSound != null && shadeSound.gameObject.activeInHierarchy)
     {
         shadeSound.Play();
     }
+}
 
-    public void PlayFeastViolin()
+
+public void PlayFeastViolin()
+{
+    if (feastViolin != null && feastViolin.gameObject.activeInHierarchy)
     {
-        feastViolin.Play();
+        if (!feastViolin.isPlaying)
+            feastViolin.Play();
     }
+}
+
 
     public void SetHeartbeatIntensity(float volume, float pitch)
     {
