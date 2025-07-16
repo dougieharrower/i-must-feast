@@ -45,7 +45,7 @@ void SpawnBushes(int count)
         GameObject prefab = bushPrefabs[Random.Range(0, bushPrefabs.Length)];
         Quaternion randomRotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
         GameObject bush = Instantiate(prefab, position, randomRotation);
-
+bush.tag = "Bush";
         // Apply uniform scale variance
         float scaleFactor = 1f + Random.Range(-scaleVariance, scaleVariance);
         bush.transform.localScale = Vector3.one * scaleFactor;

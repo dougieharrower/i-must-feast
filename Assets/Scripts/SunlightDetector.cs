@@ -12,6 +12,8 @@ private PlayerMovement playerMovement;
 
     [Header("Debug")]
     public bool isInShade = false;
+    private bool wasInShade = false;
+
 void Start()
 {
     playerMovement = GetComponent<PlayerMovement>();
@@ -20,6 +22,12 @@ void Start()
     void Update()
     {
         CheckForShade();
+        if (isInShade && !wasInShade)
+{
+    AudioManager.Instance?.PlayShadeTone();
+}
+wasInShade = isInShade;
+
     }
 
 void CheckForShade()
