@@ -104,25 +104,28 @@ else if (!isFeastable && feastPromptWasVisible)
 }
 
 
-        // Player initiates feast
-        if (isFeastable && playerMovement.IsFeastPressed() && !hasBeenFeastedOn)
-        {
-            Debug.Log("FEAST ACTIVATED!");
+if (isFeastable && playerMovement.IsFeastPressed() && !hasBeenFeastedOn)
+{
+    Debug.Log("FEAST ACTIVATED!");
 
-            feastEffectController.TriggerFeastEffect();
-            FeastometerController.Instance?.AddFeast(0.2f);
+    hasBeenFeastedOn = true;
 
-            PlayerHealthController health = playerTransform.GetComponent<PlayerHealthController>();
-            health?.GainHealth(health.maxHealth * 0.10f);
+    feastEffectController.TriggerFeastEffect();
+    FeastometerController.Instance?.AddFeast(0.2f);
 
-            hasBeenFeastedOn = true;
+    PlayerHealthController health = playerTransform.GetComponent<PlayerHealthController>();
+    health?.GainHealth(health.maxHealth * 0.10f);
 
-            if (spawnedRadius) Destroy(spawnedRadius);
-            if (feastPromptInstance) Destroy(feastPromptInstance);
+    // 🧠 Notify game manager
+    FeastGameManager.Instance?.RegisterFeast();
 
-            FeastCameraController.Instance?.ResetToDefault();
-            Destroy(gameObject, 1f);
-        }
+    if (spawnedRadius) Destroy(spawnedRadius);
+    if (feastPromptInstance) Destroy(feastPromptInstance);
+
+    FeastCameraController.Instance?.ResetToDefault();
+    Destroy(gameObject, 1f);
+}
+
 
         // Player startles the prey
         if (dist <= feastActivationRange &&

@@ -144,6 +144,7 @@ public class PlayerHealthController : MonoBehaviour
         {
             deathScreen.SetActive(true);
         }
+        FeastGameManager.Instance?.TriggerGameOver();
     }
 
     void DrainHealth()

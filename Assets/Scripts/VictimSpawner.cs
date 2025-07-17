@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class VictimSpawner : MonoBehaviour
 {
+    public static VictimSpawner Instance;
+
     [Header("Victim Spawn Settings")]
     public GameObject victimPrefab;
     public int numberToSpawn = 5;
@@ -14,6 +16,15 @@ public class VictimSpawner : MonoBehaviour
     public int maxAttempts = 30;
 
     private List<Vector3> spawnPoints = new List<Vector3>();
+    public int TotalVictims => numberToSpawn;
+
+    void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+    }
 
     void Start()
     {
@@ -42,7 +53,6 @@ public class VictimSpawner : MonoBehaviour
             {
                 Vector3 finalPos = hit.position;
 
-                // Check for padding against other spawn points
                 bool overlaps = false;
                 foreach (Vector3 pos in spawnPoints)
                 {

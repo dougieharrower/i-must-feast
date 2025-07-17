@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Threat
   - Bush
+  - Prey
   layers:
   - Default
   - TransparentFX
