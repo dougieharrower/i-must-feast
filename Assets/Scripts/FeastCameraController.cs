@@ -33,6 +33,16 @@ public class FeastCameraController : MonoBehaviour
         playerTransform = GameObject.FindGameObjectWithTag("Player")?.transform;
     }
 
+    private void Start()
+{
+    if (defaultCamera != null)
+        defaultCamera.Priority = 100;
+
+    if (feastCamera != null)
+        feastCamera.Priority = 0;
+}
+
+
     void Update()
     {
         if (Keyboard.current.fKey.wasPressedThisFrame && currentPrey != null)

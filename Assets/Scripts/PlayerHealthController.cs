@@ -136,16 +136,20 @@ public class PlayerHealthController : MonoBehaviour
         Debug.Log("Frenzy ended.");
     }
 
-    void HandleDeath()
-    {
-        isDead = true;
-        Debug.Log("Player has died.");
-        if (deathScreen != null)
-        {
-            deathScreen.SetActive(true);
-        }
-        FeastGameManager.Instance?.TriggerGameOver();
-    }
+void HandleDeath()
+{
+    isDead = true;
+    Debug.Log("Player has died.");
+
+    // REMOVE THIS:
+    // if (deathScreen != null)
+    // {
+    //     deathScreen.SetActive(true);
+    // }
+
+    FeastGameManager.Instance?.TriggerGameOver();
+}
+
 
     void DrainHealth()
     {

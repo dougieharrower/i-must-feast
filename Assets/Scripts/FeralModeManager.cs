@@ -21,21 +21,25 @@ public class FeralModeManager : MonoBehaviour
         else Instance = this;
     }
 
-    public void StartFeralMode()
+public void StartFeralMode()
+{
+    if (IsActive) return;
+
+    IsActive = true;
+
+    // ✅ Tell the game manager Feral Mode was used
+    FeastGameManager.Instance?.RegisterFeralUsage();
+
+    StartCoroutine(FeralRoutine());
+
+    if (timeSlow)
     {
-        if (IsActive) return;
-
-        IsActive = true;
-        StartCoroutine(FeralRoutine());
-
-        // Optional: apply modifiers here (like slow time)
-        if (timeSlow)
-        {
-            Time.timeScale = 0.5f;
-        }
-
-        Debug.Log("🐾 Feral Mode started!");
+        Time.timeScale = 0.5f;
     }
+
+    Debug.Log("🐾 Feral Mode started!");
+}
+
 
     private IEnumerator FeralRoutine()
     {

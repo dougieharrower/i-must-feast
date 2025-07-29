@@ -11,13 +11,20 @@ public class AudioManager : MonoBehaviour
     public AudioSource shadeSound;
     public AudioSource feastViolin;
 
-    private void Awake()
+void Awake()
+{
+    if (Instance == null)
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
-
-        DontDestroyOnLoad(gameObject);
+        Instance = this;
+        // Optional: remove this
+        // DontDestroyOnLoad(gameObject);
     }
+    else
+    {
+        Destroy(gameObject);
+    }
+}
+
 
 public void PlayShadeTone()
 {
@@ -56,18 +63,26 @@ public void PlayFeastViolin()
         heartbeatLoop.pitch = 1f;
     }
 
-    private void Start()
+private void Start()
+{
+    // 🔄 Reassign if needed
+    if (ambientLoop == null)
+        ambientLoop = GameObject.Find("AmbientLoopSource")?.GetComponent<AudioSource>();
+    if (heartbeatLoop == null)
+        heartbeatLoop = GameObject.Find("HeartbeatSource")?.GetComponent<AudioSource>();
+    // ...and so on for shadeSound, feastViolin
+
+    if (ambientLoop != null)
     {
-        if (ambientLoop != null)
-        {
-            ambientLoop.loop = true;
-            ambientLoop.Play();
-        }
-        else
-        {
-            Debug.LogWarning("Ambient loop AudioSource not assigned in AudioManager.");
-        }
+        ambientLoop.loop = true;
+        ambientLoop.Play();
     }
+    else
+    {
+        Debug.LogWarning("Ambient loop AudioSource not assigned in AudioManager.");
+    }
+}
+
     
     private Coroutine heartbeatRoutine;
 

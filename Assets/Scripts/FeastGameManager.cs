@@ -12,14 +12,18 @@ public class FeastGameManager : MonoBehaviour
     public TextMeshProUGUI timerText;
     public Image preyIconImage;
 
-private int totalPrey;
-
+    private int totalPrey;
     private int feastedCount = 0;
+    private float currentTime;
 
     public float countdownTime = 120f; // 2 minutes
-    private float currentTime;
+
     private bool isPaused = false;
     private bool gameEnded = false;
+
+    // 🟨 NEW: Score & Feral tracking
+    private int score = 0;
+    private bool usedFeralMode = false;
 
     private void Awake()
     {
@@ -28,12 +32,13 @@ private int totalPrey;
         else
             Destroy(gameObject);
     }
-void Start()
-{
-    totalPrey = VictimSpawner.Instance.TotalVictims;
-    currentTime = countdownTime;
-    UpdateUI();
-}
+
+    void Start()
+    {
+        totalPrey = VictimSpawner.Instance.TotalVictims;
+        currentTime = countdownTime;
+        UpdateUI();
+    }
 
     void Update()
     {
@@ -53,15 +58,41 @@ void Start()
     public void RegisterFeast()
     {
         feastedCount++;
+        score += 100;
+
         if (feastedCount >= totalPrey)
             TriggerGameOver();
     }
 
+    // 🟨 NEW: Called from FeralModeManager
+    public void RegisterFeralUsage()
+    {
+        usedFeralMode = true;
+    }
+
+    private int GetFinalScore()
+    {
+        int timeBonus = Mathf.RoundToInt(currentTime) * 10;
+        int feralBonus = usedFeralMode ? 50 : 0;
+        return score + timeBonus + feralBonus;
+    }
+
     public void TriggerGameOver()
     {
+        if (gameEnded) return;
+
         gameEnded = true;
         Debug.Log("🏁 Game Over");
-        SceneManager.LoadScene("MenuScene"); // or whatever you want to call it
+
+        // 🟨 NEW: Store results
+        GameResultStore.FinalScore = GetFinalScore();
+        GameResultStore.PreyCount = feastedCount;
+        GameResultStore.TotalPrey = totalPrey;
+        GameResultStore.TimeLeft = currentTime;
+        GameResultStore.FeralUsed = usedFeralMode;
+
+        // Load results screen
+        SceneManager.LoadScene("ResultsScene");
     }
 
     private void UpdateUI()
