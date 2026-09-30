@@ -70,6 +70,14 @@ public class FeastGameManager : MonoBehaviour
         usedFeralMode = true;
     }
 
+    // Dev-mode only: skip straight to the results screen for testing,
+    // without needing to hunt down every prey first.
+    public void DevCompleteAll()
+    {
+        feastedCount = totalPrey;
+        TriggerGameOver();
+    }
+
     private int GetFinalScore()
     {
         int timeBonus = Mathf.RoundToInt(currentTime) * 10;

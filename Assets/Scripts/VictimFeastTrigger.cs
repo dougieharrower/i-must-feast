@@ -14,6 +14,13 @@ public class VictimFeastTrigger : MonoBehaviour
     [Header("Feast Effect Overlay")]
     public FeastEffectController feastEffectController;
 
+    [Header("Death Effects (optional)")]
+    [Tooltip("Played at the victim's position when feasted on. Leave empty to skip.")]
+    public AudioClip deathSound;
+    [Range(0f, 1f)] public float deathSoundVolume = 1f;
+    [Tooltip("Spawned at the victim's position when feasted on. Leave empty to skip.")]
+    public GameObject deathParticlePrefab;
+
     private VictimFleeController fleeController;
     private GameObject spawnedRadius;
     private GameObject feastPromptInstance;
@@ -110,6 +117,8 @@ if (isFeastable && playerMovement.IsFeastPressed() && !hasBeenFeastedOn)
 
     hasBeenFeastedOn = true;
 
+    PlayDeathEffects();
+
     feastEffectController.TriggerFeastEffect();
     FeastometerController.Instance?.AddFeast(0.2f);
 
@@ -142,6 +151,22 @@ if (isFeastable && playerMovement.IsFeastPressed() && !hasBeenFeastedOn)
             });
         }
     }
+
+private void PlayDeathEffects()
+{
+    if (deathSound != null)
+    {
+        AudioSource.PlayClipAtPoint(deathSound, transform.position, deathSoundVolume);
+    }
+
+    if (deathParticlePrefab != null)
+    {
+        GameObject fx = Instantiate(deathParticlePrefab, transform.position, Quaternion.identity);
+        ParticleSystem ps = fx.GetComponent<ParticleSystem>();
+        float lifetime = ps != null ? ps.main.duration + ps.main.startLifetime.constantMax : 3f;
+        Destroy(fx, lifetime);
+    }
+}
 
 void Start()
 {

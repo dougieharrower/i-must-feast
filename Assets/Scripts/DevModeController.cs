@@ -17,6 +17,7 @@ public class DevModeController : MonoBehaviour
     private static DevModeController instance;
     private TextMeshProUGUI indicatorText;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
@@ -25,6 +26,7 @@ public class DevModeController : MonoBehaviour
         GameObject go = new GameObject("DevModeController");
         instance = go.AddComponent<DevModeController>();
     }
+#endif
 
     void Awake()
     {
@@ -53,7 +55,7 @@ public class DevModeController : MonoBehaviour
         textGO.transform.SetParent(canvasGO.transform, false);
 
         indicatorText = textGO.AddComponent<TextMeshProUGUI>();
-        indicatorText.text = "DEV MODE\nF1 off  |  F2 reload";
+        indicatorText.text = "DEV MODE\nF1 off | F2 reload | F3 win";
         indicatorText.fontSize = 22;
         indicatorText.color = new Color(1f, 0.3f, 0.3f, 0.9f);
         indicatorText.alignment = TextAlignmentOptions.TopRight;
@@ -80,13 +82,20 @@ public class DevModeController : MonoBehaviour
                 indicatorText.gameObject.SetActive(IsActive);
 
             Debug.Log(IsActive
-                ? "DEV MODE ENABLED — god mode + speed boost active (F1 to disable, F2 to reload scene)"
+                ? "DEV MODE ENABLED — god mode + speed boost active (F1 off, F2 reload scene, F3 instant win)"
                 : "Dev mode disabled");
         }
 
-        if (IsActive && Keyboard.current.f2Key.wasPressedThisFrame)
+        if (!IsActive) return;
+
+        if (Keyboard.current.f2Key.wasPressedThisFrame)
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        if (Keyboard.current.f3Key.wasPressedThisFrame)
+        {
+            FeastGameManager.Instance?.DevCompleteAll();
         }
     }
 }
