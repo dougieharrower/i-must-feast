@@ -46,3 +46,9 @@ sysinfo.txt
 # ========== Collab ==========
 .collabignore
 .collab/
+
+# ========== Crash reporting ==========
+crashlytics-build.properties
+
+# ========== Unity Recorder output ==========
+Recordings/

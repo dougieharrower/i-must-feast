@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement")]
     public float walkSpeed = 3f;
     public float runSpeed = 6f;
+private Animator animator;
 
     public float sneakSpeed = 1.5f; // Adjust as needed
     private bool isSneakHeld;
@@ -37,6 +38,9 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+
+        animator = GetComponent<Animator>();
+
 
         // Initialize and enable input actions
         inputActions = new InputSystem_Actions();
@@ -105,6 +109,13 @@ public class PlayerMovement : MonoBehaviour
         // Gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+
+        // Animation parameters
+float speedPercent = move.magnitude; // 0 (idle) to 1 (full movement)
+animator.SetFloat("Speed", speedPercent);
+animator.SetBool("isSneaking", effectiveSneak);
+Debug.Log($"Speed: {speedPercent} | isSneaking: {effectiveSneak} | Current State: {animator.GetCurrentAnimatorStateInfo(0).IsName("Armature_Walk_Animation")}");
+
     }
 
 
