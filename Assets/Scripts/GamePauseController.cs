@@ -9,7 +9,10 @@ public class GamePauseController : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current.escapeKey.wasPressedThisFrame || Gamepad.current?.startButton.wasPressedThisFrame == true)
+        bool keyboardPause = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+        bool gamepadPause = Gamepad.current?.startButton.wasPressedThisFrame == true;
+
+        if (keyboardPause || gamepadPause)
         {
             TogglePause();
         }

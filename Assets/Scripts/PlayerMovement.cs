@@ -41,6 +41,13 @@ private Animator animator;
 
         animator = GetComponent<Animator>();
 
+        if (groundCheck == null)
+        {
+            Debug.LogError("PlayerMovement: groundCheck is not assigned in the Inspector. Disabling player movement.");
+            enabled = false;
+            return;
+        }
+
 
         // Initialize and enable input actions
         inputActions = new InputSystem_Actions();
@@ -88,6 +95,9 @@ private Animator animator;
         bool effectiveSneak = isInBush || isSneakHeld;
         float currentSpeed = effectiveSneak ? sneakSpeed : (isSprintHeld ? runSpeed : walkSpeed);
 
+        if (DevModeController.IsActive)
+            currentSpeed *= DevModeController.SpeedMultiplier;
+
 
 
         // Rotate Baune to face movement direction
@@ -114,14 +124,13 @@ private Animator animator;
 float speedPercent = move.magnitude; // 0 (idle) to 1 (full movement)
 animator.SetFloat("Speed", speedPercent);
 animator.SetBool("isSneaking", effectiveSneak);
-Debug.Log($"Speed: {speedPercent} | isSneaking: {effectiveSneak} | Current State: {animator.GetCurrentAnimatorStateInfo(0).IsName("Armature_Walk_Animation")}");
 
     }
 
 
     void OnDisable()
     {
-        inputActions.Player.Disable();
+        inputActions?.Player.Disable();
     }
 
     public bool IsSneaking()

@@ -28,20 +28,34 @@ public class PlayerHealthController : MonoBehaviour
     private float frenzyTimer = 0f;
     private const float frenzyDuration = 5f;
 
+    private static readonly int HealthPercentID = Shader.PropertyToID("_HealthPrecent");
+
     void Start()
     {
         currentHealth = maxHealth;
         recoverableHealth = maxHealth;
     }
 
+    // Shared by the burnMaterials update below and by CharacterBurnEffect,
+    // so both always agree on the same health-percent value.
+    public float GetHealthPercent()
+    {
+        return maxHealth > 0f ? Mathf.Clamp01(currentHealth / maxHealth) : 0f;
+    }
+
     void Update()
     {
-        foreach (Material mat in burnMaterials)
-        {
-            mat.SetFloat("_HealthPrecent", currentHealth / maxHealth);
-        }
+        UpdateBurnMaterials();
 
         if (isDead) return;
+
+        if (DevModeController.IsActive)
+        {
+            currentHealth = maxHealth;
+            recoverableHealth = maxHealth;
+            if (isInFrenzy) EndFrenzy();
+            return;
+        }
 
         if (sunlightDetector == null)
         {
@@ -73,6 +87,18 @@ public class PlayerHealthController : MonoBehaviour
         if (currentHealth <= 0f && recoverableHealth <= 0f && !isDead)
         {
             HandleDeath();
+        }
+    }
+
+    private void UpdateBurnMaterials()
+    {
+        if (burnMaterials == null) return;
+
+        float percent = GetHealthPercent();
+        foreach (Material mat in burnMaterials)
+        {
+            if (mat == null) continue;
+            mat.SetFloat(HealthPercentID, percent);
         }
     }
 
@@ -189,6 +215,8 @@ void HandleDeath()
 
     public void TakeDamage(float damageAmount)
     {
+        if (DevModeController.IsActive) return;
+
         if (isInFrenzy)
         {
             recoverableHealth -= damageAmount;
@@ -215,18 +243,22 @@ void HandleDeath()
     {
         public PlayerHealthController playerHealth;
         public Renderer[] affectedRenderers;
-        private static readonly int HealthPrecentID = Shader.PropertyToID("_HealthPrecent");
 
         void Update()
         {
-            float healthPercent = Mathf.Clamp01(playerHealth.currentHealth / playerHealth.maxHealth);
+            if (playerHealth == null || affectedRenderers == null) return;
+
+            // Uses PlayerHealthController's own GetHealthPercent()/HealthPercentID
+            // so this can never drift from the burnMaterials update in Update().
+            float healthPercent = playerHealth.GetHealthPercent();
             foreach (Renderer rend in affectedRenderers)
             {
+                if (rend == null) continue;
                 foreach (Material mat in rend.materials)
                 {
-                    if (mat.HasProperty(HealthPrecentID))
+                    if (mat != null && mat.HasProperty(HealthPercentID))
                     {
-                        mat.SetFloat(HealthPrecentID, healthPercent);
+                        mat.SetFloat(HealthPercentID, healthPercent);
                     }
                 }
             }

@@ -45,13 +45,19 @@ public class HeartbeatController : MonoBehaviour
 
     Transform FindClosestPrey()
     {
-        GameObject[] preyObjects = GameObject.FindGameObjectsWithTag("Prey");
+        // VictimSpawner already knows every victim it spawned, so reuse that
+        // list instead of scanning the whole scene by tag (and allocating a
+        // new array) every single frame.
+        if (VictimSpawner.Instance == null) return null;
+
+        IReadOnlyList<GameObject> preyObjects = VictimSpawner.Instance.SpawnedVictims;
         Transform closest = null;
         float closestDistance = Mathf.Infinity;
 
-        foreach (GameObject prey in preyObjects)
+        for (int i = 0; i < preyObjects.Count; i++)
         {
-            if (prey == null) continue;
+            GameObject prey = preyObjects[i];
+            if (prey == null) continue; // feasted-on victims get destroyed
 
             float dist = Vector3.Distance(player.position, prey.transform.position);
             if (dist < closestDistance)

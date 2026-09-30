@@ -16,7 +16,14 @@ public class VictimSpawner : MonoBehaviour
     public int maxAttempts = 30;
 
     private List<Vector3> spawnPoints = new List<Vector3>();
+    private List<GameObject> spawnedVictims = new List<GameObject>();
+
+    // Requested spawn count from the Inspector. Use SpawnedCount for the
+    // actual number of victims that exist, since NavMesh sampling can fail
+    // to place every requested victim.
     public int TotalVictims => numberToSpawn;
+    public int SpawnedCount { get; private set; }
+    public IReadOnlyList<GameObject> SpawnedVictims => spawnedVictims;
 
     void Awake()
     {
@@ -24,10 +31,10 @@ public class VictimSpawner : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
-    }
 
-    void Start()
-    {
+        // Spawn during Awake (not Start) so every victim exists before any
+        // other script's Start() runs, e.g. FeastGameManager reading
+        // SpawnedCount to set the win condition.
         SpawnVictims();
     }
 
@@ -67,10 +74,20 @@ public class VictimSpawner : MonoBehaviour
 
                 GameObject victim = Instantiate(victimPrefab, finalPos, Quaternion.identity);
                 spawnPoints.Add(finalPos);
+                spawnedVictims.Add(victim);
                 spawned++;
             }
         }
 
-        Debug.Log($"Spawned {spawned} victims out of requested {numberToSpawn}");
+        SpawnedCount = spawned;
+
+        if (spawned < numberToSpawn)
+        {
+            Debug.LogWarning($"VictimSpawner: Only spawned {spawned} victims out of requested {numberToSpawn}. Win condition will use the actual spawned count.");
+        }
+        else
+        {
+            Debug.Log($"Spawned {spawned} victims out of requested {numberToSpawn}");
+        }
     }
 }

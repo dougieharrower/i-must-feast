@@ -101,12 +101,16 @@ public class VictimFleeController : MonoBehaviour
     {
         Vector3 currentPos = transform.position;
 
-        float distLeft = currentPos.x - minX;
-        float distRight = maxX - currentPos.x;
-        float distBack = currentPos.z - minZ;
-        float distForward = maxZ - currentPos.z;
+        // Clamp each distance to non-negative in case the victim is already
+        // outside the configured bounds (physics/animation can push it there),
+        // otherwise maxRadius goes negative and the fallback target collapses
+        // onto (or behind) the victim's current position instead of fleeing.
+        float distLeft = Mathf.Max(0f, currentPos.x - minX);
+        float distRight = Mathf.Max(0f, maxX - currentPos.x);
+        float distBack = Mathf.Max(0f, currentPos.z - minZ);
+        float distForward = Mathf.Max(0f, maxZ - currentPos.z);
 
-        float maxRadius = Mathf.Min(distLeft, distRight, distBack, distForward) * perimeterRadiusFactor;
+        float maxRadius = Mathf.Max(1f, Mathf.Min(distLeft, distRight, distBack, distForward) * perimeterRadiusFactor);
 
         float startAngle = Random.Range(0f, 360f);
         float offsetAngle = Random.Range(minPerimeterAngle, maxPerimeterAngle);

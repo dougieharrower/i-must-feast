@@ -28,11 +28,20 @@ public class GnomeThreat : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        baune = GameObject.FindGameObjectWithTag("Player").transform;
+
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("GnomeThreat: No GameObject tagged 'Player' found in scene. Disabling this gnome.");
+            enabled = false;
+            return;
+        }
+
+        baune = playerObj.transform;
         bauneMovement = baune.GetComponent<PlayerMovement>();
 
         PickPatrolPoint();
-        
+
     }
 
     void Update()

@@ -45,6 +45,8 @@ public class FeastCameraController : MonoBehaviour
 
     void Update()
     {
+        if (Keyboard.current == null) return;
+
         if (Keyboard.current.fKey.wasPressedThisFrame && currentPrey != null)
         {
             ActivateFeastCamera(currentPrey);

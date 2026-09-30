@@ -35,6 +35,11 @@ public class CloudSpawner : MonoBehaviour
     {
         while (true)
         {
+            // CloudMover destroys its own GameObject once it travels far
+            // enough; prune those entries here so the count reflects clouds
+            // that actually still exist.
+            activeClouds.RemoveAll(cloud => cloud == null);
+
             if (activeClouds.Count < maxClouds)
             {
                 SpawnCloud();

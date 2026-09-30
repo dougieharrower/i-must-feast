@@ -35,7 +35,7 @@ public class FeastGameManager : MonoBehaviour
 
     void Start()
     {
-        totalPrey = VictimSpawner.Instance.TotalVictims;
+        totalPrey = VictimSpawner.Instance.SpawnedCount;
         currentTime = countdownTime;
         UpdateUI();
     }
